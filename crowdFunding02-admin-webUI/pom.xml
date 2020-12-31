@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>crowdFunding01-admin-parent</artifactId>
+        <groupId>com.iproject.crowd</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>crowdFunding02-admin-webUI</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.iproject.crowd</groupId>
+            <artifactId>crowdFunding03-admin-component</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
+        <!-- spring 框架测试使用 -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- junit 测试 -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+
+        <!-- 引入 Servlet 容器中相关依赖
+             scope = provide 的作用:
+             为了我们在编写代码期间能够正常使用这些工具，因此是需要导入这两个包的。
+             然而，我们将在外部的 tomcat 服务器部署此项目，而 tomcat 本身提供这两个包的支持，
+             因此可以在 Maven 进行设置：在编译时忽略这些依赖。
+             这样，当项目被部署到实际环境时，这两个包将由 tomcat 提供，避免了可能引发的错误问题。
+        -->
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+
+        <!-- JSP 页面使用的依赖 -->
+        <dependency>
+            <groupId>javax.servlet.jsp</groupId>
+            <artifactId>jsp-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+    
+</project>

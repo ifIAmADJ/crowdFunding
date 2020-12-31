@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd">
+
+<!--将 Service 扫描到 IOC 容器内-->
+    <!--该包在模块 03 当中-->
+    <context:component-scan base-package="com.iproject.crowd.service"/>
+
+    <!--加载外部属性文件-->
+    <context:property-placeholder location="classpath:jdbc.properties"/>
+
+    <!--配置数据源, druid 是开源的 JDBC 组件-->
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
+        <property name="username" value="${jdbc.user}"/>
+        <property name="url" value="${jdbc.url}"/>
+        <property name="driverClassName" value="${jdbc.driver}"/>
+        <property name="password" value="${jdbc.password}"/>
+    </bean>
+
+    <!-- 配置事务管理器，需要独立装配数据源-->
+    <bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <aop:config>
+        <!--该 execution 表达的是：任意修饰符的，任意包下的，任意层级的，任意以 ServiceImpl 为后缀的任意方法，参数任意-->
+        <aop:pointcut id="txPointcut" expression="execution(* *..*SeriveImpl.*(..))"/>
+
+        <!--将指定切点关联指定的事务通知-->
+        <aop:advisor advice-ref="txAdvice" pointcut-ref="txPointcut"/>
+    </aop:config>
+
+    <!--xmlns:tx="http://www.springframework.org/schema/tx-->
+    <!--不要导入 cache -->
+    <!--tx:method 内配置的方法将作为一个事务被执行，可以在这里配置事务的传播行为-->
+    <tx:advice id="txAdvice" transaction-manager="txManager">
+        <tx:attributes>
+
+            <!--配置只读属性，数据库将知道这只是一个查询操作。-->
+            <tx:method name="get*" read-only="true"/>
+            <tx:method name="find*" read-only="true"/>
+            <tx:method name="query*" read-only="true"/>
+            <tx:method name="count*" read-only="true"/>
+
+            <!--
+
+                增删改方法：配置事务传播行为，回滚异常
+                propagation 属性:
+                    REQUIRED:       默认值，表示当前方法必须工作在事务中，如果当前线程没有事务，就新创建一个事务，如果已有事务，就在原来的事务完成它。
+                    REQUIRES_NEW:   在 REQUIRED 的基础上，无论当前线程是否有新事务，都会新创建一个事务。
+
+                配置程序当抛出什么什么异常时回滚：
+                rollback-for 属性:
+            -->
+
+            <tx:method name="save*" propagation="REQUIRES_NEW" rollback-for="java.lang.Exception"/>
+            <tx:method name="update*" propagation="REQUIRES_NEW" rollback-for="java.lang.Exception"/>
+            <tx:method name="remove*" propagation="REQUIRES_NEW" rollback-for="java.lang.Exception"/>
+            <tx:method name="batch*" propagation="REQUIRES_NEW" rollback-for="java.lang.Exception"/>
+
+        </tx:attributes>
+    </tx:advice>
+
+</beans>
