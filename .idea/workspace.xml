@@ -58,8 +58,8 @@
       <file leaf-file-name="index.jsp" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/crowdFunding02-admin-webUI/web/index.jsp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="240">
-              <caret line="24" column="43" lean-forward="true" selection-start-line="24" selection-start-column="43" selection-end-line="24" selection-end-column="43" />
+            <state relative-caret-position="1760">
+              <caret line="88" column="32" selection-start-line="88" selection-start-column="32" selection-end-line="88" selection-end-column="32" />
             </state>
           </provider>
         </entry>
@@ -145,6 +145,9 @@
     <dirStrings>
       <dir>C:\Users\liJunhu\IdeaProjects\crowdFunding01adminparent\crowdFunding02-admin-webUI\src\main\resources\mybatis\mapper</dir>
     </dirStrings>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
@@ -251,11 +254,12 @@
     <packageJsonPaths />
   </component>
   <component name="ProjectFrameBounds" extendedState="1">
-    <option name="x" value="30" />
-    <option name="y" value="32" />
+    <option name="x" value="52" />
+    <option name="y" value="3" />
     <option name="width" value="1638" />
     <option name="height" value="1052" />
   </component>
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
     <navigator proportions="" version="1">
       <foldersAlwaysOnTop value="true" />
@@ -275,71 +279,6 @@
               <item name="crowdFunding01adminparent" type="b2602c69:ProjectViewProjectNode" />
               <item name="crowdFunding01adminparent" type="462c0819:PsiDirectoryNode" />
               <item name="crowdFunding02-admin-webUI" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="crowdFunding01adminparent" type="b2602c69:ProjectViewProjectNode" />
-              <item name="crowdFunding01adminparent" type="462c0819:PsiDirectoryNode" />
-              <item name="crowdFunding02-admin-webUI" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="crowdFunding01adminparent" type="b2602c69:ProjectViewProjectNode" />
-              <item name="crowdFunding01adminparent" type="462c0819:PsiDirectoryNode" />
-              <item name="crowdFunding02-admin-webUI" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="main" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="crowdFunding01adminparent" type="b2602c69:ProjectViewProjectNode" />
-              <item name="crowdFunding01adminparent" type="462c0819:PsiDirectoryNode" />
-              <item name="crowdFunding02-admin-webUI" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="main" type="462c0819:PsiDirectoryNode" />
-              <item name="resources" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="crowdFunding01adminparent" type="b2602c69:ProjectViewProjectNode" />
-              <item name="crowdFunding01adminparent" type="462c0819:PsiDirectoryNode" />
-              <item name="crowdFunding02-admin-webUI" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="main" type="462c0819:PsiDirectoryNode" />
-              <item name="resources" type="462c0819:PsiDirectoryNode" />
-              <item name="mapper" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="crowdFunding01adminparent" type="b2602c69:ProjectViewProjectNode" />
-              <item name="crowdFunding01adminparent" type="462c0819:PsiDirectoryNode" />
-              <item name="crowdFunding02-admin-webUI" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="test" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="crowdFunding01adminparent" type="b2602c69:ProjectViewProjectNode" />
-              <item name="crowdFunding01adminparent" type="462c0819:PsiDirectoryNode" />
-              <item name="crowdFunding02-admin-webUI" type="462c0819:PsiDirectoryNode" />
-              <item name="web" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="crowdFunding01adminparent" type="b2602c69:ProjectViewProjectNode" />
-              <item name="crowdFunding01adminparent" type="462c0819:PsiDirectoryNode" />
-              <item name="crowdFunding02-admin-webUI" type="462c0819:PsiDirectoryNode" />
-              <item name="web" type="462c0819:PsiDirectoryNode" />
-              <item name="bootstrap" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="crowdFunding01adminparent" type="b2602c69:ProjectViewProjectNode" />
-              <item name="crowdFunding01adminparent" type="462c0819:PsiDirectoryNode" />
-              <item name="crowdFunding02-admin-webUI" type="462c0819:PsiDirectoryNode" />
-              <item name="web" type="462c0819:PsiDirectoryNode" />
-              <item name="bootstrap" type="462c0819:PsiDirectoryNode" />
-              <item name="css" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="crowdFunding01adminparent" type="b2602c69:ProjectViewProjectNode" />
-              <item name="crowdFunding01adminparent" type="462c0819:PsiDirectoryNode" />
-              <item name="crowdFunding02-admin-webUI" type="462c0819:PsiDirectoryNode" />
-              <item name="web" type="462c0819:PsiDirectoryNode" />
-              <item name="WEB-INF" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
@@ -630,7 +569,7 @@
       <workItem from="1609159377544" duration="2234000" />
       <workItem from="1609224459067" duration="13870000" />
       <workItem from="1609316451993" duration="14420000" />
-      <workItem from="1609396415393" duration="13128000" />
+      <workItem from="1609396415393" duration="13925000" />
     </task>
     <servers />
   </component>
@@ -667,7 +606,7 @@
     </history-entry>
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="78057000" />
+    <option name="totallyTimeSpent" value="78854000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -679,8 +618,7 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="411" y="21" width="1638" height="1052" extended-state="0" />
-    <editor active="true" />
+    <frame x="52" y="3" width="1638" height="1052" extended-state="1" />
     <layout>
       <window_info anchor="right" id="Palette" order="5" />
       <window_info anchor="bottom" id="Event Log" order="0" side_tool="true" />
@@ -700,7 +638,7 @@
       <window_info id="Image Layers" order="6" />
       <window_info anchor="bottom" id="Java Enterprise" order="6" />
       <window_info anchor="right" id="Capture Analysis" order="0" />
-      <window_info anchor="bottom" id="Version Control" order="5" show_stripe_button="false" />
+      <window_info anchor="bottom" id="Version Control" order="5" />
       <window_info anchor="bottom" id="Run" order="9" visible="true" weight="0.2439825" />
       <window_info anchor="bottom" id="Spring" order="4" weight="0.3278867" />
       <window_info anchor="bottom" id="Terminal" order="1" weight="0.32962963" />
@@ -1100,8 +1038,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/crowdFunding02-admin-webUI/web/index.jsp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="240">
-          <caret line="24" column="43" lean-forward="true" selection-start-line="24" selection-start-column="43" selection-end-line="24" selection-end-column="43" />
+        <state relative-caret-position="1760">
+          <caret line="88" column="32" selection-start-line="88" selection-start-column="32" selection-end-line="88" selection-end-column="32" />
         </state>
       </provider>
     </entry>
