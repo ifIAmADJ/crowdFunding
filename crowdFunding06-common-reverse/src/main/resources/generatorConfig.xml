@@ -46,6 +46,7 @@
             <property name="enableSubPackages" value="false"/>
         </javaClientGenerator>
 
+        <!--这个表已经被生成过了-->
         <table tableName="t_admin" domainObjectName="Admin"/>
     </context>
 </generatorConfiguration>

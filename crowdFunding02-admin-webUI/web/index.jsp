@@ -101,6 +101,7 @@ $END$
 
 
 <a href="test/ssm.html">测试</a>
+<a href="admin/to/login/page.html">进入登录页面</a>
 <br>
 <button id="btn1">Send [1,2,3] to back-end;1</button>
 <br>

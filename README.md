@@ -247,7 +247,7 @@ web
 
 ## (重要) 将项目打包
 
-我们并不会每一次都手动提取出 `war` 包然后通过命令行不断部署，而是通过 IntelliJ IDE 中进行。这需要两个步骤：
+我们不必每一次更改完都手动提取出 `war` 包部署，而是在 IntelliJ IDE 中直接配置一个 tomcat 服务器并进行测试。这需要两个步骤：
 
 1. 将某个模块**以及它依赖的模块**一同打为 `war` 包。
 2. 在 IntelliJ IDEA 中配置 `war` 包在 tomcat 环境中测试。
@@ -285,7 +285,33 @@ web
 
 一是保证我们能够正确的访问到指定映射的 Controller，二是保证了我们能够正确引入 `css`，`fonts` 资源目录下的各种文件。
 
-### 配置对页面的请求
+### JSP-复用页面内容
+
+> 这部分内容针对 jsp 开发而言。或许它对于前后端分离式开发已经过时了。
+
+随着项目开发的进行，我们可以发现多个 `jsp` 页面总是要引入相同的 `<head>` 标签，如：
+
+```jsp
+<head>
+    <meta charset="UTF-8">
+	<%-- 其它 meta 标签--%>
+    <base href="http://${pageContext.request.serverName}:${pageContext.request.serverPort}${pageContext.request.contextPath}/">
+    <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/main.css">
+    <%-- 可能引入的其它 js, css 等--%>
+</head>
+```
+
+我们可以新建一个 `include-head.jsp` ( 文件名称自拟 ) 将这些标签保存起来，这样，别的 `.jsp` 页面只需要简易地引用它即可 ( [jsp 中的各种标签都是什么含义？](https://blog.csdn.net/dupengshixu/article/details/85256677) )：
+
+```jsp
+<%@incldue file="/WEB-INF/include-head.jsp" %>
+```
+
+对于其它可能被复用的组件 ( 如轮播图，导航栏等 ) 我们都可以类似的形式来复用它们。
+
+### 配置对 (伪) 静态页面的请求
 
 打开 `sping-web-mvc.xml` 文件加入以下格式的配置。
 
@@ -296,7 +322,49 @@ web
 
 `view-name` 对应着 `WEB-INF` 目录下的 `jsp` 文件。
 
-### 配置 layer
+## (避坑) 两种统一异常处理方式——注意 ControllerAdvice 的使用细节
+
+第一种处理方式，是使用 Spring 提供的 `@ControllerAdvice` 注解，将服务器运行期间所有抛出的异常都交付给某个专用类来处理。
+
+使用这个方法之前，确保 `spring-web-mvc.xml` 中配置了 `<annotation:driven/>` 。
+
+```java
+// @ControllerAdvice 和 @ExceptionHandler 配合使用
+@ControllerAdvice
+public class XXXExceptionResolver {
+    // 指定该方法 "抓包" 的异常类型。
+    @ExceptionHandler(value = LoginFailureException.class)
+    public ModelAndView resolveLoginFailureException(
+            LoginFailureException loginFailureException,
+            HttpServletRequest httpServletRequest,
+            HttpServletResponse httpServletResponse
+    ) throws IOException {
+        //TODO...
+    }
+}
+```
+
+不过一定要注意 ！！它只处理 `Controller` 抛出的异常。**如果一个请求没有经过 `Controller` 而是被 SpringMVC 直接转发，那么它的异常处理就无法被触发**。
+
+典型的，上述在 `spring-web-mvc.xml` 中配置的 `<mvc:view-controller>` 就是不经过 `Controller` 处理的请求。因此我们要在该配置文件中注册一个 `simpleMappingExceptionResolver` ( 故名思意，简单映射异常处理类 ) 单独处理这类请求。
+
+```xml
+<!-- 基于 XML 的异常映射，针对于 mvc:view-controller 而言。-->
+<bean id="simpleMappingExceptionResolver"
+      class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+    <!--配置异常类型和具体视图页面的对应关系-->
+    <property name="exceptionMappings">
+        <props>
+            <!--key属性指定异常全类名，可以是自定义的异常-->
+            <!--标签体内写对应的视图名( 和 viewResolver 组合成具体的前后缀 )-->
+            <prop key="com.iproject.crowd.exception.AccessForbiddenException">admin-login</prop>
+            <prop key="java.lang.Exception">system-error</prop>
+        </props>
+    </property>
+</bean>
+```
+
+这些异常都应该继承自 `RuntimeException` ( 它又继承自 `Exception` ) 。这样，在返回的 `jsp` 页面中，插入一段 EL 表达式 `${RequestScope.exception.message}` 就可以打印出相关异常的原因了。
 
 ## (拓展了解) Spring MVC 如何实现的参数绑定
 
@@ -305,4 +373,239 @@ web
 [SpringMVC|参数绑定](https://www.jianshu.com/p/cc6b482d34b9)
 
 [SpringMVC源码之参数解析绑定原理](https://www.cnblogs.com/w-y-c-m/p/8443892.html)
+
+## (业务) 管理员登录
+
+### 实现思路
+
+以下是身份验证业务的实现逻辑：
+
+```flow
+st=>start: 前端点击登录页面
+controller=>operation: Controller 接收账号密码
+service=>operation: Service 实现身份验证逻辑
+mapper=>operation: Mapper 封装实体向数据库请求 Admin
+c1=>condition: 如果 Admin 为空
+ex=>operation: 抛出 LoginFailureException 异常
+c2=>condition: 如果数据库密码和提交的不一致
+ifc2Yes=>end: 登录成功
+advice=>operation: 由 ControllerAdvice 处理
+
+st->controller->service->mapper->c1()
+c1(yes)->ex->advice
+c1(no)->c2()
+c2(yes)->ifc2Yes
+c2(no)->ex->advice
+```
+
+另外，为了保证的安全性，数据库不会以明文的形式存储账户的密码，而是会使用 MD5 ( 或者是其它方式 ) 对其进行加密。用户提交明文密码时，后端将采用相同的加密算法加密，并和数据库中存储的密文比对是否一致。
+
+在登录验证成功后，后端返回视图模型 `main.jsp`，并且将用户信息作为 `Attribute` **存储到 Session 域中**。
+
+加密的明文通过创建 MD5 工具方法来实现，它被存储到 `com.iproject.utils.Crowd` 包。
+
+### 完善 1：避免刷新浏览器时重复提交表单 —— 重定向 
+
+注意，即便是登录成功并直接返回了视图 `admin-main` ，我们也仍然处于 `/admin/do/login.html` 的位置。这会导致我们在此处刷新页面时，页面会相当于又一次提交了用户名表单到 `AdminCointroller` 中。
+
+我们希望当用户登录成功之后，`Controller` 能够**重定向**到另一个代表用户主页的 `url` ，而不是仍然停留在请求登录的 `url` 。当然，新的 `url` 中仍然会携带用户的登录信息，因为我们将其存到了 `sessionScope` 当中。
+
+将 `AdminController` 指定映射方法的返回值修改为重定向形式：
+
+```java
+// return "admin-main"
+// 实际 SpringMVC 会直接返回 /WEB-INF/admin-main.jsp 视图，但是浏览器的 url 不变。
+
+// 此时这个字符串将不是 "视图名"，而是 "伪" 静态页面的 url。
+return "redirect:/admin/to/main/page.html"
+```
+
+然后在 `spring-web-mvc.xml` 配置这个伪静态页面 ( 实际上它是 `.jsp` 渲染的 ) 映射：
+
+```xml
+<mvc:view-controller path="/admin/to/main/page.html" view-name="admin-main"/>
+```
+
+### 完善 2：登出系统  —— 销毁 Session
+
+退出登录的原理是，设置一个映射方法，该方法通过参数绑定的形式获取到 `Session` 对象，然后将其销毁即可。在注销完用户后，我们仍然通过重定向的方式返回到登录页面中。
+
+```java
+@RequestMapping("/admin/do/logout.html")
+public String Logout(HttpSession session){
+    //退出登录的原理是：只需要将 sessionScope 内的信息清除即可。
+    session.invalidate();
+    return "redirect:/admin/to/login/page.html";
+}
+```
+
+同时，将页面内的 `herf` 做出设置：
+
+```jsp
+<base href="http://${pageContext.request.serverName}:${pageContext.request.serverPort}${pageContext.request.contextPath}/">
+...
+<%-- 
+    浏览器结合 base 标签组装出的 url :
+	http://localhost:8080/crowd/admin/do/logout.html
+--%>
+<a href="admin/do/logout.html">退出登录</a>
+```
+
+### 完善 3：登录状态检查 —— 拦截器实现
+
+用户的请求可如下划分：
+
+1. 请求公共资源。
+2. 请求受保护的资源。
+
+对于第一种请求，系统不要求用户统一进行登录。而对于第二种请求，系统则要求用户**是在已经登录的境况**下发出请求，或者说对于受保护的资源拒绝匿名请求，并强制登录。
+
+显然，我们要对用户的请求进行拦截筛选。对于这种需求，可以通过配置拦截器来完成：
+
+1. 实现指定功能的拦截器。
+2. 在 `spring-web-mvc.xml` 文件中注册它。
+3. 在对应的 `ControllerAdvice` 中处理拦截器可能抛出的异常。
+
+这里需要继承一个 `org.springframework.web.servlet.handler.HandlerInterceptorAdapter` 类，并实现 `preHandle`  方法。
+
+检查的思路是从请求 `request` 中 ( 通过参数绑定 ) 尝试获取 Session 域对象内的 `loginAdmin` 属性 ( 这个属性封装了一个 Admin 实体类对象 )，如果为空，则说明该请求没有携带登录信息。
+
+```java
+public class LoginInterceptor extends HandlerInterceptorAdapter {
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+
+        // 1. 尝试通过 Request 获取 Session 对象。
+        Admin admin = (Admin)request.getSession().getAttribute(
+                ProjectConstant.ATTR_NAME_LOGIN_ADMIN
+        );
+
+        // 2. 这个拦截器针对受保护的资源，因此一旦发现没有登录就返回 false.
+        // 这个异常我们将抛给 com.iproject.crowd.mvc.config 下的 ExceptionResolver 来处理。
+        if(admin == null) throw new AccessForbiddenException(ProjectConstant.MESSAGE_ACCESS_FORBIDDEN);
+
+        // 返回 true 表示允许 (不拦截) 。
+        return true;
+    }
+}
+```
+
+## (业务) 查询
+
+在该业务中，我们需要使用 Mybatis 提供的分页插件来执行查询。确保依赖文件中有 Pagehelper：
+
+```xml
+<!-- MyBatis 分页插件 -->
+<dependency>
+    <groupId>com.github.pagehelper</groupId>
+    <artifactId>pagehelper</artifactId>
+</dependency>
+```
+
+回到 `spring-mybatis.xml` 文件中，在 `SqlSessionFactoryBean` 项目中装配该插件：
+
+```xml
+<!--配置 sqlSessionFactoryBean整合Mybatis-->
+<!--是 Spring 和 Mybatis 整合的重要工具-->
+<bean id="sqlSessionFactoryBean" class="org.mybatis.spring.SqlSessionFactoryBean">
+
+    <!--省略了之前的配置-->
+    <!--配置 MyBatis 插件-->
+    <property name="plugins">
+        <!-- 插件可以有多个，因此这里实际上是一个数组。-->
+        <array>
+            <bean class="com.github.pagehelper.PageHelper">
+                <property name="properties">
+                    <props>
+                        <!--配置数据库方言，告诉 Pagehelper 当前使用的数据库-->
+                        <prop key="dialect">mysql</prop>
+
+                        <!--
+                            配置页码的合理化修正，在 1 ~ 总页数之间修正页码
+                            这避免了用户特意传入不合理的页码数而引起的错误。
+                        -->
+                        <prop key="reasonable">true</prop>
+                    </props>
+                </property>
+            </bean>
+        </array>
+    </property>
+</bean>
+```
+
+在 `AdminMapper.xml` 当中 ( 这个文件是通过 MBG 逆向生成的 ) 编写 SQL 语句：
+
+```xml
+<!-- 插入分页查询 -->
+<select id="selectAdminByKey" resultMap="BaseResultMap">
+  select id,`account`,pwd,email,`name`,create_time
+  from t_admin
+  where `account` like concat('%',#{key},'%') or
+   `email` like concat('%',#{key},'%') or
+   `name` like concat('%',#{key},'%')
+</select>
+```
+
+注：实际上，这个模糊查询的效率很低。将来我们会用 ElasticSearch 来解决这样的搜索问题。这里由于我们已经装配了 Pagehelper，因此不用再使用 `limit` 进行分页查询了。
+
+不要忘记在对应的 `AdminMapper.java` 接口中添加对应的映射方法：
+
+```java
+//@Param 是 ibatis 中提供的注解。
+List<Admin> selectAdminByKey(@Param("key") String key);
+```
+
+在 `Service` 层使用它，注意，这里的返回值不是单纯的 `List<Admin>` 而是 `PageInfo<Admin>`，原因是除了数据之外我们还需要封装其它信息，比如页码等等 ( 具体细节我们可以不去关心 ) ，这些全部装进了 `PageInfo 当中`。
+
+```java
+/**
+ * @param keyword  搜索的关键字。
+ * @param pageNum  搜索的页号
+ * @param pageSize 一页显示多少内容？
+ * @return 返回指定页号的内容。
+ */
+@Override
+public PageInfo<Admin> getAdminPageInfo(String keyword, Integer pageNum, Integer pageSize) {
+
+    // 1. 调用 PageHelper 的静态方法开启分页功能。
+    // 这里充分体现了 PageHelper 的非侵入式设计，原本的业务不需要做任何修改。
+    PageHelper.startPage(pageNum, pageSize);
+
+    // 2. 执行查询
+    List<Admin> admins = adminMapper.selectAdminByKey(keyword);
+
+    // 3. 封装到 PageInfo 对象中。
+    return new PageInfo<>(admins);
+}
+```
+
+`Controller` 则需要对外部接收关键词，请求页数，每一页的显示数量了。
+
+```java
+@RequestMapping("/admin/get/page.html")
+public String getAdminPageInfo(
+        // 允许提供空的字符串值。
+        @RequestParam(value = "keyword",defaultValue = "") String key,
+        @RequestParam(value = "pageNumber",defaultValue = "1") Integer pageNumber,
+        @RequestParam(value = "pageSize",defaultValue = "5") Integer pageSize,
+        ModelMap modelMap
+){
+
+    PageInfo<Admin> adminPageInfo = adminService.getAdminPageInfo(key, pageNumber, pageSize);
+
+    // jsp 可以通过 ${RequestScope.pageInfo.list} 获取。
+    modelMap.addAttribute(ProjectConstant.ATTR_NAME_PAGE_INFO,adminPageInfo);
+    return "admin-page";
+}
+```
+
+而在 `.jsp` 页面中则选择了使用 `jstl` 实现渲染：
+
+```jsp
+<%-- 导入 JSTL --%>
+<%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+....
+<%-- 通过 pageInfo.list 获取信息，admin 代表数据内的每一个元素 --%>
+<c:forEach items="${requestScope.pageInfo.list}" var="admin">
+```
 

@@ -1,19 +1,23 @@
 package com.iproject.crowd.service.impl;
 
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
+import com.iproject.crowd.constant.ProjectConstant;
 import com.iproject.crowd.entity.Admin;
+import com.iproject.crowd.entity.AdminExample;
+import com.iproject.crowd.exception.LoginFailureException;
 import com.iproject.crowd.mapper.AdminMapper;
 import com.iproject.crowd.service.api.AdminService;
+import com.iproject.crowd.utils.Md5Helper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class AdminServiceImpl implements AdminService {
 
     private final AdminMapper adminMapper;
-
-//  后续解决这个问题:猜测 @MapperScan 和 @Mapper 注解将解决这个问题 ?
 
     @Autowired
     public AdminServiceImpl(AdminMapper adminMapper) {
@@ -29,6 +33,61 @@ public class AdminServiceImpl implements AdminService {
     public List<Admin> getAll() {
 //      该方法传入 null 则相当于进行无条件查询
         return adminMapper.selectByExample(null);
+    }
+
+    @Override
+    public Admin getAdminByLoginAcct(String loginAcct, String loginPlainPwd) {
+
+        // 1. 根据 loginAcct 尝试查询出 Admin 实体
+        AdminExample adminExample = new AdminExample();
+        AdminExample.Criteria criteria = adminExample.createCriteria();
+
+        criteria.andAccountEqualTo(loginAcct);
+
+        // 2. 判断 Admin 是否为空，传入的是 adminExample!
+        List<Admin> admins = adminMapper.selectByExample(adminExample);
+
+        // 3. 为 null，则抛出 LoginFailureException 异常。
+        if (admins == null || admins.size() == 0) {
+            throw new LoginFailureException(ProjectConstant.MESSAGE_LOGIN_INVALID);
+        }
+
+        // 3.1 账号应该是唯一的，这一种情况同样不能发生。
+        if (admins.size() > 1) throw new RuntimeException(ProjectConstant.MESSAGE_SYSTEM_ERROR_LOGIN_NOT_UNIQUE);
+
+        // 4. 不是 null，则取出 Admin 的 pwd 属性。
+        Admin admin = admins.get(0);
+
+        // 5. 将用户传入的明文密码经过 md5 加密，并进行比对。
+        String pwd_db = admin.getPwd();
+        String pwd_form = Md5Helper.md5(loginPlainPwd);
+
+        // 6. 若不一致，则抛出异常。若一致，则将该对象返回。
+        // Objects.equals(a,b）还可以避免空指针异常。
+        if (!Objects.equals(pwd_db, pwd_form)) throw new LoginFailureException(ProjectConstant.MESSAGE_LOGIN_INVALID);
+
+        return admin;
+    }
+
+    /**
+     * @param keyword  搜索的关键字。
+     * @param pageNum  搜索的页号
+     * @param pageSize 一页显示多少内容？
+     * @return 返回指定页号的内容。
+     */
+    @Override
+    public PageInfo<Admin> getAdminPageInfo(String keyword, Integer pageNum, Integer pageSize) {
+
+        // 1. 调用 PageHelper 的静态方法开启分页功能。
+        // 这里充分体现了 PageHelper 的非侵入式设计，原本的业务不需要做任何修改。
+        PageHelper.startPage(pageNum, pageSize);
+
+        // 2. 执行查询
+        List<Admin> admins = adminMapper.selectAdminByKey(keyword);
+
+        // 3. 封装到 PageInfo 对象中。
+        return new PageInfo<>(admins);
+
     }
 
 }

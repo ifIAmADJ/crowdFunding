@@ -28,8 +28,29 @@
 
         <!--关联数据源，使用 ref 进行配置，引入 Druid 数据源，等效于 c3p0 -->
         <property name="dataSource" ref="dataSource"/>
-    </bean>
 
+        <!--配置 MyBatis 插件-->
+        <property name="plugins">
+            <!-- 插件可以有多个，因此这里实际上是一个数组。-->
+            <array>
+                <bean class="com.github.pagehelper.PageHelper">
+                    <property name="properties">
+                        <props>
+                            <!--配置数据库方言，告诉 Pagehelper 当前使用的数据库-->
+                            <prop key="dialect">mysql</prop>
+
+                            <!--
+                                配置页码的合理化修正，在 1 ~ 总页数之间修正页码
+                                这避免了用户特意传入不合理的页码数而引起的错误。
+                            -->
+                            <prop key="reasonable">true</prop>
+                        </props>
+                    </property>
+                </bean>
+            </array>
+        </property>
+
+    </bean>
     <!-- Mybatis 扫描全局文件的配置-->
     <bean id="mapperScannerConfigurer" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
         <property name="basePackage" value="com.iproject.crowd.mapper"/>

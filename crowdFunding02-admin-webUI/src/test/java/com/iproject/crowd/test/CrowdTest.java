@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -18,7 +19,7 @@ import java.sql.SQLException;
 
 // 在测试类上标记必要的注解，Spring 整合 Junit。
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"classpath:spring-persist-mybatis.xml","classpath:spring-persist-tx.xml"})
+@ContextConfiguration(locations = {"classpath:spring-persist-mybatis.xml", "classpath:spring-persist-tx.xml"})
 public class CrowdTest {
 
     @Autowired
@@ -32,15 +33,14 @@ public class CrowdTest {
 
 
     @Test
-    public void testService(){
+    public void testService() {
         adminService.saveAdmin(
-                new Admin(null,"jerry123","1234567","234@qq.com","jerry",null)
+                new Admin(null, "jerry123", "1234567", "234@qq.com", "jerry", null)
         );
-
     }
 
     @Test
-    public void testLogger(){
+    public void testLogger() {
 
         // 1.获取 Logger 对象
         Logger logger = LoggerFactory.getLogger(CrowdTest.class);
@@ -54,16 +54,19 @@ public class CrowdTest {
         logger.error("this is a error level");
     }
 
-//    测试 MBG 自动生成的 Mapper;
+    //    测试 MBG 自动生成的 Mapper;
     @Test
-    public void testMapper(){
-        adminMapper.insert(
-                new Admin(null,"root","root","123@qq.com","tomYeah",null)
-        );
+    public void testMapper() {
+
+        for (int i = 0; i < 18; i++) {
+            adminMapper.insert(
+                    new Admin(null, "user"+i, "root", "user"+i+"@qq.com", "tomYeah"+i, null)
+            );
+        }
     }
 
 
-//  测试基本的数据库连接
+    //  测试基本的数据库连接
     @Test
     public void testConnection() throws SQLException {
         Connection connection = dataSource.getConnection();

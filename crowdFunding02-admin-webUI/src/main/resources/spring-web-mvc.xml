@@ -21,19 +21,47 @@
         <property name="suffix" value=".jsp"/>
     </bean>
 
-    <!--基于 XML 的异常映射-->
-    <bean id="simpleMappingExceptionResolver" class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+
+
+    <!--
+        对于简单的页面请求，不需要 Controller，可以通过 SpringMVC 直接返回视图
+        注意，这类请求不会经过 Controller，因此一旦抛出了异常 (比如 XXInterceptor 检查到未登录而抛出 AccessForbiddenException )
+        @ControllerAdvice 增强的异常处理类将无法捕获异常。
+     -->
+    <mvc:view-controller path="/admin/to/login/page.html" view-name="admin-login"/>
+    <mvc:view-controller path="/admin/to/main/page.html" view-name="admin-main"/>
+
+    <!-- 基于 XML 的异常映射，针对于 mvc:view-controller 而言。-->
+    <bean id="simpleMappingExceptionResolver"
+          class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
         <!--配置异常类型和具体视图页面的对应关系-->
         <property name="exceptionMappings">
             <props>
                 <!--key属性指定异常全类名-->
                 <!--标签体内写对应的视图名( 和 viewResolver 组合成具体的前后缀 )-->
+                <prop key="com.iproject.crowd.exception.AccessForbiddenException">admin-login</prop>
                 <prop key="java.lang.Exception">system-error</prop>
             </props>
         </property>
     </bean>
 
-    <!--对于简单的页面请求，不需要 Controller，可以通过 SpringMVC 直接返回视图 -->
-    <mvc:view-controller path="/admin/to/login/page.html" view-name="admin-login"/>
+    <mvc:interceptors>
+        <mvc:interceptor>
+            <!--拦截的资源-->
+            <!-- /* : 拦截一层路径，比如 /aaa, /bbb, /ccc-->
+            <!-- /** : 拦截任意层级路径，比如 /aaa/bbb, /bbb, /ccc/ddd/eee -->
+            <mvc:mapping path="/**"/>
+
+            <!--不拦截的资源,只有登录页面是不拦截的。-->
+            <mvc:exclude-mapping path="/admin/to/login/page.html"/>
+            <mvc:exclude-mapping path="/admin/do/login.html"/>
+
+            <!--已经退出的 ( 包含 Session 过期的情形 ) 也不再去拦截。-->
+            <mvc:exclude-mapping path="/admin/do/logout.html"/>
+
+            <!--拦截器 Bean Class-->
+            <bean class="com.iproject.crowd.mvc.interceptor.LoginInterceptor"/>
+        </mvc:interceptor>
+    </mvc:interceptors>
 
 </beans>

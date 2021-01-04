@@ -36,8 +36,7 @@ public class TestController {
 
         logger.info(RequestHelper.isAjaxRequest(request) + "");
 
-        String s = null;
-        System.out.println(s.length());
+        System.out.println(10/0);
 
         List<Admin> adminList = adminService.getAll();
 

@@ -29,6 +29,7 @@
         <property name="dataSource" ref="dataSource"/>
     </bean>
 
+    <!-- 这里使用的 aop 的相关内容，这里暂时只使用声明式事务部分 -->
     <aop:config>
         <!--该 execution 表达的是：任意修饰符的，任意包下的，任意层级的，任意以 ServiceImpl 为后缀的任意方法，参数任意-->
         <aop:pointcut id="txPointcut" expression="execution(* *..*SeriveImpl.*(..))"/>

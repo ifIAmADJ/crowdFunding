@@ -2,12 +2,13 @@ package com.iproject.crowd.mvc.config;
 
 import com.google.gson.Gson;
 import com.iproject.crowd.constant.ProjectConstant;
+import com.iproject.crowd.exception.AccessForbiddenException;
+import com.iproject.crowd.exception.LoginFailureException;
 import com.iproject.crowd.utils.RequestHelper;
 import com.iproject.crowd.utils.ResultEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.ModelAndView;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -15,11 +16,9 @@ import java.io.IOException;
 /**
  * 统一的异常处理组件，通过注解的方式进行配置
  */
-
 @ControllerAdvice
 public class CrowdExceptionResolver {
 
-    @SuppressWarnings("all")
     private ModelAndView commonResolveException(
             Exception ex,
             String viewName,
@@ -51,6 +50,7 @@ public class CrowdExceptionResolver {
 
         // 否则，创建一个 ModelAndView 对象
         ModelAndView modelAndView = new ModelAndView();
+
         modelAndView.addObject(ProjectConstant.ATTR_NAME_EXCEPTION, ex);
 
         // 10.设置对应的视图名称
@@ -60,6 +60,24 @@ public class CrowdExceptionResolver {
         return modelAndView;
     }
 
+    @ExceptionHandler(value = LoginFailureException.class)
+    public ModelAndView resolveLoginFailureException(
+            LoginFailureException loginFailureException,
+            HttpServletRequest httpServletRequest,
+            HttpServletResponse httpServletResponse
+    ) throws IOException {
+        return commonResolveException(loginFailureException, "admin-login", httpServletRequest, httpServletResponse);
+    }
+
+
+    @ExceptionHandler(value = AccessForbiddenException.class)
+    public ModelAndView resolveAccessForbiddenException(
+            AccessForbiddenException accessForbiddenException,
+            HttpServletRequest httpServletRequest,
+            HttpServletResponse httpServletResponse
+    ) throws IOException {
+        return commonResolveException(accessForbiddenException, "admin-login", httpServletRequest, httpServletResponse);
+    }
 
     @ExceptionHandler(value = NullPointerException.class)
     public ModelAndView resolveNullPointerException(
