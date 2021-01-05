@@ -8,6 +8,7 @@ import com.iproject.crowd.service.api.AdminService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import javax.servlet.http.HttpSession;
@@ -20,6 +21,31 @@ public class AdminController {
     @Autowired
     public AdminController(AdminService adminService) {
         this.adminService = adminService;
+    }
+
+    @RequestMapping("/admin/remove/{adminId}/{pageNum}/{keyword}.html")
+    public String remove(
+            @PathVariable("adminId") Integer adminId,
+            @PathVariable("pageNum") Integer pageNum,
+            @PathVariable("keyword") String keyword
+    ){
+
+        // 执行删除
+        adminService.remove(adminId);
+
+        /*
+        * 重点是页面跳转部分。
+        *
+        * 方案1: return "admin-page";
+        * 这种方式没有在 admin-page 视图内设置任何数据 ( 参考 getAdminPageInfo ) 方法，因此页面会不显示数据。
+        *
+        * 方案2: return "forward:/admin/get/page.html"
+        * 这种方式会重复做一次删除操作，没有必要。
+        *
+        * 方案3: return "redirect:/admin/get/page.html"
+        *
+        * */
+        return "redirect:/admin/get/page.html?pageNum="+pageNum+"&keyword="+keyword;
     }
 
     @RequestMapping("/admin/get/page.html")

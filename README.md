@@ -595,7 +595,7 @@ public String getAdminPageInfo(
 
     // jsp 可以通过 ${RequestScope.pageInfo.list} 获取。
     modelMap.addAttribute(ProjectConstant.ATTR_NAME_PAGE_INFO,adminPageInfo);
-    return "admin-page";
+    retu rn "admin-page";
 }
 ```
 
@@ -609,3 +609,111 @@ public String getAdminPageInfo(
 <c:forEach items="${requestScope.pageInfo.list}" var="admin">
 ```
 
+在查询的表单中添加 `action` 和 `name` 等属性，以便于参数传递，同时将原来的 `button` 属性调整为 `submit `。
+
+```jsp
+<div class="..">
+ 	<%-- 重点1：补充 action--%>
+    <form action="admin/get/page.html" class=".." role="form" style="..">
+        <div class="..">
+            <div class="..">
+                <div class="..">查询条件</div>
+	 			<%-- 重点2：补充输入框的 name = keyword--%>
+                <input name="keyword" class=".." type="text" placeholder="请输入查询条件">
+            </div>
+        </div>
+ 		<%-- 重点3：补充 button 的属性为 submit--%>
+        <button type="submit" class=".."><i class=".."></i> 查询</button>
+    </form>
+```
+
+### 完善1：(前端) 分页导航栏
+
+除了后端使用了 PageHelper 达成分页目的之外，前端同样也使用了来自 jQuery 的 pagination 工具。在主页面中将其引入样式和脚本文件：
+
+```jsp
+<link rel="stylesheet" href="css/pagination.css"/>
+<script type="text/javascript" src="jquery/jquery.pagination.js"></script>
+```
+
+编写分页逻辑：
+
+```jsp
+<script type="text/javascript">
+    $(function(){
+        // 调用后面声明的函数对页码导航条进行初始化操作
+        initPagination();
+    });
+    // 生成页码导航条的函数
+    function initPagination() {
+        // 获取总记录数
+        var totalRecord = ${requestScope.pageInfo.total};
+        // 声明一个JSON对象存储Pagination要设置的属性
+        var properties = {
+            num_edge_entries: 3,                   // 边缘页数
+            num_display_entries: 5,                // 主体页数
+            callback: pageSelectCallback,          // 指定用户点击“翻页”的按钮时跳转页面的回调函数
+            items_per_page: ${requestScope.pageInfo.pageSize},  // 每页要显示的数据的数量
+            current_page: ${requestScope.pageInfo.pageNum - 1}, // Pagination 内部使用 pageIndex 来管理页码，pageIndex从0开始，pageNum从1开始，所以要减一
+            prev_text: "上一页",                          // 上一页按钮上显示的文本
+            next_text: "下一页"                           // 下一页按钮上显示的文本
+        };
+        // 生成页码导航条
+        $("#Pagination").pagination(totalRecord, properties);
+    }
+
+    // 回调函数的含义：声明出来以后不是自己调用，而是交给系统或框架调用
+    // 用户点击“上一页、下一页、1、2、3……”这样的页码时调用这个函数实现页面跳转
+    // pageIndex是Pagination传给我们的那个“从0开始”的页码
+    function pageSelectCallback(pageIndex, jQuery) {
+        // 修正页号，pagination <=> mybatis pagehepler.
+        var pageNum = pageIndex + 1;
+        // 跳转页面，从 param 域中可以直接获取(上一个)请求域中携带的参数 keyword，这个参数会被继续携带至这一个转发的请求。
+        window.location.href = "admin/get/page.html?pageNumber="+pageNum+"&keyword="+${param.keyword};
+        // 由于每一个页码按钮都是超链接，所以在这个函数最后取消超链接的默认行为
+        return false;
+    }
+</script>
+```
+
+核心语句是 `window.location.href`，它相当于跳转到下一个用户点击的页号上，除此之外还要携带关键字信息。
+
+### 完善2：单点删除
+
+首先，调整负责删除的按钮，用户点击按钮，即向服务器发送一个 RESTFul 请求：
+
+```jsp
+<%--这里使用了 RESTFul 风格的参数传递。--%>
+<a class="btn btn-danger btn-xs" href="admin/remove/${admin.id}/${requestScope.pageInfo.pageNum}/${param.keyword}.html">
+    <i class=" glyphicon glyphicon-remove"></i>
+</a>
+```
+
+而后端的重点在于，如何返回这个视图 ( 直接返回 / 转发 / <u>重定向</u> )：
+
+```java
+@RequestMapping("/admin/remove/{adminId}/{pageNum}/{keyword}.html")
+public String remove(
+        @PathVariable("adminId") Integer adminId,
+        @PathVariable("pageNum") Integer pageNum,
+        @PathVariable("keyword") String keyword
+){
+    // 执行删除
+    adminService.remove(adminId);
+    /*
+    * 重点是页面跳转部分。
+    *
+    * 方案1: return "admin-page";
+    * 这种方式没有在 admin-page 视图内设置任何数据 ( 参考 getAdminPageInfo ) 方法，因此页面会不显示数据。
+    *
+    * 方案2: return "forward:/admin/get/page.html"
+    * 这种方式会重复做一次删除操作，没有必要。
+    *
+    * 方案3: return "redirect:/admin/get/page.html"
+    *
+    * */
+    return "redirect:/admin/get/page.html?pageNum="+pageNum+"&keyword="+keyword;
+}
+```
+
+而 Service 层的操作十分简单，仅仅是调用 `adminMapper.deleteByPrimaryKey(..)` ，因此在这里不赘述。

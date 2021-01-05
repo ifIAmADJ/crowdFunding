@@ -58,7 +58,7 @@ public class CrowdTest {
     @Test
     public void testMapper() {
 
-        for (int i = 0; i < 18; i++) {
+        for (int i = 18; i < 238; i++) {
             adminMapper.insert(
                     new Admin(null, "user"+i, "root", "user"+i+"@qq.com", "tomYeah"+i, null)
             );
