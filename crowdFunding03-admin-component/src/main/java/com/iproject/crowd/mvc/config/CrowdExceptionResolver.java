@@ -3,12 +3,15 @@ package com.iproject.crowd.mvc.config;
 import com.google.gson.Gson;
 import com.iproject.crowd.constant.ProjectConstant;
 import com.iproject.crowd.exception.AccessForbiddenException;
+import com.iproject.crowd.exception.AcctNotUniqueException;
+import com.iproject.crowd.exception.AcctNotUniqueForUpdateException;
 import com.iproject.crowd.exception.LoginFailureException;
 import com.iproject.crowd.utils.RequestHelper;
 import com.iproject.crowd.utils.ResultEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.ModelAndView;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -59,6 +62,25 @@ public class CrowdExceptionResolver {
         // 11. 返回一个完整的 ModelAndView 对象。
         return modelAndView;
     }
+
+    @ExceptionHandler(value = AcctNotUniqueException.class)
+    public ModelAndView resolveAcctNotUniqueException(
+            AcctNotUniqueException acctNotUniqueException,
+            HttpServletRequest httpServletRequest,
+            HttpServletResponse httpServletResponse
+    ) throws IOException {
+        return commonResolveException(acctNotUniqueException, "admin-add", httpServletRequest, httpServletResponse);
+    }
+
+    @ExceptionHandler(value = AcctNotUniqueForUpdateException.class)
+    public ModelAndView resolveAcctNotUniqueForUpdateException(
+            AcctNotUniqueForUpdateException acctNotUniqueForUpdateException,
+            HttpServletRequest httpServletRequest,
+            HttpServletResponse httpServletResponse
+    ) throws IOException {
+        return commonResolveException(acctNotUniqueForUpdateException, "system-error", httpServletRequest, httpServletResponse);
+    }
+
 
     @ExceptionHandler(value = LoginFailureException.class)
     public ModelAndView resolveLoginFailureException(

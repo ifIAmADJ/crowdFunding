@@ -202,6 +202,10 @@ try{
 }
 ```
 
+## (问题) 有关于 Spring 接收 Get/Post 参数的注解
+
+[springboot（服务端接口）获取URL请求参数的几种方法](https://www.cnblogs.com/zhanglijun/p/9403483.html)
+
 ## (问题) 有关于 Mybatis Mapper 无法自动装配的问题
 
 当前的解决方案:
@@ -490,6 +494,55 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 }
 ```
 
+## (业务) 注册
+
+目标是将表单提交的 Admin 保存起来，要求：
+
+1. `loginAcct` ( 用户账号 ) 不允许重复。
+2. 密码是经过 MD5 加密过的。 
+
+假设注册页面是 `add.jsp` ，由于注册用户不需要携带额外数据，因此可以直接在 `view-controller` 当中进行配置。同时，为了保证账号的一致性，需要到数据库为其添加唯一约束。
+
+如果采用命令行的方式，则：
+
+```sql
+alter table `crowdFunding`.`t_admin` Add unique index(`account`)
+```
+
+调整按钮和表单，之后，我们完善之前 `ServiceImpl` 的 `saveAdmin` 方法 ( 之前没有密码加密和时间戳 )
+
+```java
+@Override
+public void saveAdmin(Admin admin) {
+
+    // 使用 MD5 的加密串替换密码
+    String safePwd = Md5Helper.md5(admin.getPwd());
+    admin.setPwd(safePwd);
+
+    Date createTime = new Date();
+    admin.setCreateTime(createTime);
+
+    adminMapper.insert(admin);
+}
+```
+
+剩下的任务就是另 `ControllerResolver` 处理账号不唯一导致的异常 ( 这个错误将在 Mybatis 执行 SQL 语句的过程中抛出，如果不捕获会打印一大串信息 ) 
+
+因此，`adminMapper.insert(admin)` 要使用一层 try-catch 语句包围：
+
+```java
+try {
+    adminMapper.insert(admin);
+} catch (Exception e) {
+
+    LoggerFactory.getLogger(this.getClass()).warn(e.getMessage());
+    if (e instanceof DuplicateKeyException) throw
+        new AcctNotUniqueException(MESSAGE_LOGIN_ACCOUNT_ALREADY_IN_USE);
+}
+```
+
+其中，`org.springframework.DuplicateKeyException` 是 Spring 框架捕获的异常。我们拦截此异常，并抛出我们的异常。 ( 还要在 `ControllerResolver` 那里注册一下 )
+
 ## (业务) 查询
 
 在该业务中，我们需要使用 Mybatis 提供的分页插件来执行查询。确保依赖文件中有 Pagehelper：
@@ -717,3 +770,63 @@ public String remove(
 ```
 
 而 Service 层的操作十分简单，仅仅是调用 `adminMapper.deleteByPrimaryKey(..)` ，因此在这里不赘述。
+
+### 完善3：(业务) 修改管理员信息
+
+修改指定的管理员信息，但是不修改密码和创建时间。
+
+思路：`admin-page.jsp` ( 点击修改 ) > `admin-edit.jsp` ( 修改完毕 ) -> `AdminController(..)` (提交修改)
+
+## (业务，重要) RBAC 模型
+
+为什么要进行权限控制？如果不进行权限控制，则相当于人人都是 `root` 。整个系统的所有功能都会暴露给用户，这是不可以接受的。
+
+RBAC 模型的通俗解释很简单，"用户是什么身份，他就能做哪些事"。权限控制，即 "权利" 加 "控制"。其本质目的是保护资源，形式上有很多，比如 `url`，`handler` 方法，`service` 方法等等。
+
+一个 "权限" 通常涉及了多个资源的操作：
+
+```
+修改权限 => 访问用户组
+	    => 修改界面
+	    => 提交修改
+```
+
+比如对于一个完整的修改权限来说，需要访问三种资源。我们应当将这三个资源和此权限绑定到一起，这样当某个用户组有修改权限时，他自然就会有这些资源的使用权。
+
+不同身份的角色，他能获取的权限也各不相同，而用户本身又能扮演多个角色。这建立了下面的关系：
+
+```
+权限(n) -> 资源(n)
+	: 从权限可以对应找到资源，但是通过资源无法定位到权限。一个权限可以多个资源，同时多个权限可以复用资源。
+角色(1) -> 权限(n)
+	: 一个角色可以有多个权限。但是无法通过权限定位到角色。
+用户(n) <-> 角色(n)
+	: 一个角色可以由多个用户共同扮演，同样，一个用户也可以承担多个角色。
+```
+
+我们要根据这个理论建立对应的数据库表。
+
+### RBAC 三层模型
+
+RBAC，Role-based Access Control，一个用户可以有多个角色，一个角色可以有多个权限。
+
+RBAC0，是最基本的 RBAC 模型。
+
+RBAC1，在 RBAC0 的基础上增加了角色之间的继承关系。
+
+RBAC2，是在 RBAC1 的基础上增加了责任分离机制，和 RBAC1 是平级的关系。他包含了静态和动态责任分离。
+
+​	静态责任分离：
+
+​		角色互斥：指角色之间存在互斥关系。比如说一个用户不能既是会计师 ( 记账 ) 又是审计师 ( 查账 ) 。
+
+​		基数约束：一个角色可分配给的用户数量是受限的，一个管理员可获取的角色也是受限的。
+
+​		先决条件角色：一个用户获取 A 角色之前必须要是 B 角色，保证拥有 X 权限之前必定有 Y 权限。比如：在给某人授								予 "金牌会员" 角色之前，TA 首先应该是 "银牌会员"，而不是 "普通会员"。
+
+​	动态责任分离：
+
+​		一个用户身兼多职，在特定场所下激活特定角色。
+
+RBAC3，是 RBAC1 和 RBAC2 的组合。
+

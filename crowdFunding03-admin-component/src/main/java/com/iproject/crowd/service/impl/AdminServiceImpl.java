@@ -5,14 +5,22 @@ import com.github.pagehelper.PageInfo;
 import com.iproject.crowd.constant.ProjectConstant;
 import com.iproject.crowd.entity.Admin;
 import com.iproject.crowd.entity.AdminExample;
+import com.iproject.crowd.exception.AcctNotUniqueException;
+import com.iproject.crowd.exception.AcctNotUniqueForUpdateException;
 import com.iproject.crowd.exception.LoginFailureException;
 import com.iproject.crowd.mapper.AdminMapper;
 import com.iproject.crowd.service.api.AdminService;
 import com.iproject.crowd.utils.Md5Helper;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
+
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+
+import static com.iproject.crowd.constant.ProjectConstant.MESSAGE_LOGIN_ACCOUNT_ALREADY_IN_USE;
 
 @Service
 public class AdminServiceImpl implements AdminService {
@@ -26,7 +34,24 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public void saveAdmin(Admin admin) {
-        adminMapper.insert(admin);
+
+        // 使用 MD5 的加密串替换密码
+        String safePwd = Md5Helper.md5(admin.getPwd());
+        admin.setPwd(safePwd);
+
+        Date createTime = new Date();
+        admin.setCreateTime(createTime);
+
+        try {
+
+            adminMapper.insert(admin);
+
+        } catch (Exception e) {
+
+            LoggerFactory.getLogger(this.getClass()).warn(e.getMessage());
+            if (e instanceof DuplicateKeyException) throw
+                    new AcctNotUniqueException(MESSAGE_LOGIN_ACCOUNT_ALREADY_IN_USE);
+        }
     }
 
     @Override
@@ -91,6 +116,29 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public void remove(Integer adminId) { adminMapper.deleteByPrimaryKey(adminId);}
+    public void remove(Integer adminId) {
+        adminMapper.deleteByPrimaryKey(adminId);
+    }
+
+    @Override
+    public Admin getAdminById(Integer id) {
+        return adminMapper.selectByPrimaryKey(id);
+    }
+
+    @Override
+    public void update(Admin admin) {
+
+        try {
+            //表示有选择的更新
+            adminMapper.updateByPrimaryKeySelective(admin);
+
+        } catch (Exception e) {
+
+            LoggerFactory.getLogger(this.getClass()).warn(e.getMessage());
+            if (e instanceof DuplicateKeyException) throw
+                    new AcctNotUniqueForUpdateException(MESSAGE_LOGIN_ACCOUNT_ALREADY_IN_USE);
+        }
+
+    }
 
 }

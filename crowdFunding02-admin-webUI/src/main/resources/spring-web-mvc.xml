@@ -21,8 +21,6 @@
         <property name="suffix" value=".jsp"/>
     </bean>
 
-
-
     <!--
         对于简单的页面请求，不需要 Controller，可以通过 SpringMVC 直接返回视图
         注意，这类请求不会经过 Controller，因此一旦抛出了异常 (比如 XXInterceptor 检查到未登录而抛出 AccessForbiddenException )
@@ -30,6 +28,7 @@
      -->
     <mvc:view-controller path="/admin/to/login/page.html" view-name="admin-login"/>
     <mvc:view-controller path="/admin/to/main/page.html" view-name="admin-main"/>
+    <mvc:view-controller path="/admin/to/add/page.html" view-name="admin-add"/>
 
     <!-- 基于 XML 的异常映射，针对于 mvc:view-controller 而言。-->
     <bean id="simpleMappingExceptionResolver"

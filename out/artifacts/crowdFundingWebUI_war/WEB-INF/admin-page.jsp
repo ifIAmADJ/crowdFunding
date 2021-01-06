@@ -9,7 +9,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <%@include file="include-head.jsp" %>
-<base href="http://${pageContext.request.serverName}:${pageContext.request.serverPort}${pageContext.request.contextPath}/">
 <link rel="stylesheet" href="css/pagination.css"/>
 <script type="text/javascript" src="jquery/jquery.pagination.js"></script>
 <script type="text/javascript">
@@ -48,13 +47,16 @@
     // pageIndex是Pagination传给我们的那个“从0开始”的页码
     function pageSelectCallback(pageIndex, jQuery) {
 
+
         // 根据pageIndex计算得到pageNum
         var pageNum = pageIndex + 1;
+
+        var keyword = ${param.keyword} + "";
 
         // 跳转页面
         // 从 param 域中可以直接获取(上一个)请求域中携带的参数 keyword，这个参数会被继续携带至这一个转发的请求。
         // 这针对查询功能而言。
-        window.location.href = "admin/get/page.html?pageNumber="+pageNum+"&keyword="+${param.keyword};
+        window.location.href = "admin/get/page.html?pageNum="+pageNum+"&keyword="+keyword;
 
         // 由于每一个页码按钮都是超链接，所以在这个函数最后取消超链接的默认行为
         return false;
@@ -88,9 +90,11 @@
                     <button type="button" class="btn btn-danger" style="float:right;margin-left:10px;"><i
                             class=" glyphicon glyphicon-remove"></i> 删除
                     </button>
-                    <button type="button" class="btn btn-primary" style="float:right;"
-                            onclick="window.location.href='add.html'"><i class="glyphicon glyphicon-plus"></i> 新增
-                    </button>
+
+                    <a style="float:right" href="admin/to/add/page.html" class="btn btn-primary">
+                        <i class="glyphicon glyphicon-plus">新增</i>
+                    </a>
+
                     <br>
                     <hr style="clear:both;">
                     <div class="table-responsive">
@@ -120,9 +124,10 @@
                                         <td>
                                             <button type="button" class="btn btn-success btn-xs"><i
                                                     class=" glyphicon glyphicon-check"></i></button>
-                                            <button type="button" class="btn btn-primary btn-xs"><i
-                                                    class=" glyphicon glyphicon-pencil"></i></button>
 
+                                            <a  class="btn btn-primary btn-xs" href="admin/to/edit/page.html?adminId=${admin.id}&pageNum=${requestScope.pageInfo.pageNum}&keyword=${param.keyword}">
+                                                <i class="glyphicon glyphicon-pencil"></i>
+                                            </a>
 
                                             <%--这里使用了 RESTFul 风格的参数传递。--%>
                                             <a class="btn btn-danger btn-xs" href="admin/remove/${admin.id}/${requestScope.pageInfo.pageNum}/${param.keyword}.html">
