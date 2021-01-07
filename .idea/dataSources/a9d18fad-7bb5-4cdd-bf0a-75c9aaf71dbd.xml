@@ -1141,7 +1141,8 @@
       <DefaultForCharset>0</DefaultForCharset>
     </collation>
     <table id="289" parent="2" name="t_admin"/>
-    <column id="290" parent="289" name="id">
+    <table id="290" parent="2" name="t_role"/>
+    <column id="291" parent="289" name="id">
       <Position>1</Position>
       <Comment>管理员主键</Comment>
       <DataType>int(11)|0s</DataType>
@@ -1149,41 +1150,67 @@
       <SequenceIdentity>1</SequenceIdentity>
       <ColumnKind>normal</ColumnKind>
     </column>
-    <column id="291" parent="289" name="account">
+    <column id="292" parent="289" name="account">
       <Position>2</Position>
       <Comment>登录账号</Comment>
       <DataType>varchar(32)|0s</DataType>
       <NotNull>1</NotNull>
       <ColumnKind>normal</ColumnKind>
     </column>
-    <column id="292" parent="289" name="pwd">
+    <column id="293" parent="289" name="pwd">
       <Position>3</Position>
       <Comment>登录密码</Comment>
       <DataType>varchar(32)|0s</DataType>
       <NotNull>1</NotNull>
       <ColumnKind>normal</ColumnKind>
     </column>
-    <column id="293" parent="289" name="email">
+    <column id="294" parent="289" name="email">
       <Position>4</Position>
       <Comment>绑定邮箱</Comment>
       <DataType>varchar(255)|0s</DataType>
       <NotNull>1</NotNull>
       <ColumnKind>normal</ColumnKind>
     </column>
-    <column id="294" parent="289" name="name">
+    <column id="295" parent="289" name="name">
       <Position>5</Position>
       <Comment>管理员昵称</Comment>
       <DataType>varchar(255)|0s</DataType>
       <NotNull>1</NotNull>
       <ColumnKind>normal</ColumnKind>
     </column>
-    <column id="295" parent="289" name="create_time">
+    <column id="296" parent="289" name="create_time">
       <Position>6</Position>
       <Comment>创建时间</Comment>
       <DataType>datetime|0s</DataType>
       <ColumnKind>normal</ColumnKind>
     </column>
-    <key id="296" parent="289" name="PRIMARY">
+    <index id="297" parent="289" name="UNIQUE_ACCT">
+      <Comment>账号要保证是唯一的</Comment>
+      <ColNames>account</ColNames>
+      <Unique>1</Unique>
+      <Type>btree</Type>
+    </index>
+    <key id="298" parent="289" name="PRIMARY">
+      <NameSurrogate>1</NameSurrogate>
+      <ColNames>id</ColNames>
+      <Primary>1</Primary>
+    </key>
+    <key id="299" parent="289" name="UNIQUE_ACCT">
+      <ColNames>account</ColNames>
+      <UnderlyingIndexName>UNIQUE_ACCT</UnderlyingIndexName>
+    </key>
+    <column id="300" parent="290" name="id">
+      <Position>1</Position>
+      <DataType>int(11)|0s</DataType>
+      <NotNull>1</NotNull>
+      <ColumnKind>normal</ColumnKind>
+    </column>
+    <column id="301" parent="290" name="name">
+      <Position>2</Position>
+      <DataType>varchar(30)|0s</DataType>
+      <ColumnKind>normal</ColumnKind>
+    </column>
+    <key id="302" parent="290" name="PRIMARY">
       <NameSurrogate>1</NameSurrogate>
       <ColNames>id</ColNames>
       <Primary>1</Primary>

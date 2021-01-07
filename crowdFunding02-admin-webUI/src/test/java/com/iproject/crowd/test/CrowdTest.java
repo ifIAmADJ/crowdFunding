@@ -2,7 +2,9 @@ package com.iproject.crowd.test;
 
 
 import com.iproject.crowd.entity.Admin;
+import com.iproject.crowd.entity.Role;
 import com.iproject.crowd.mapper.AdminMapper;
+import com.iproject.crowd.mapper.RoleMapper;
 import com.iproject.crowd.service.api.AdminService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,6 +33,9 @@ public class CrowdTest {
     @Autowired
     private AdminService adminService;
 
+
+    @Autowired
+    private RoleMapper roleMapper;
 
     @Test
     public void testService() {
@@ -71,6 +76,13 @@ public class CrowdTest {
     public void testConnection() throws SQLException {
         Connection connection = dataSource.getConnection();
         System.out.println(connection);
+    }
+
+    @Test
+    public void testRoleMapper(){
+        for (int i = 0 ; i<235; i++) {
+            roleMapper.insert(new Role(null,"role" + i));
+        }
     }
 
 }

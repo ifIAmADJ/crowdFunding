@@ -206,6 +206,21 @@ try{
 
 [springboot（服务端接口）获取URL请求参数的几种方法](https://www.cnblogs.com/zhanglijun/p/9403483.html)
 
+[@requestBody 与@requestparam；@requestBody的加与不加的区别。](https://blog.csdn.net/jiashanshan521/article/details/88244735)
+
+### 有无 @RequestBody 注解的区别
+
+使用`@RequestBody`：当请求 content_type 为：`application/json` 类型的请求，数据类型为 json 时， json 格式如下：
+
+```json
+{
+    "aaa":"111",
+ 	"bbb":"222"
+}
+```
+
+不使用 `@requestBody`：当请求 content_type 为：application/x-www-form-urlencoded 类型的或 multipart/form-data 时，数据格式为 aaa=111&bbb=222。相当于 GET 附带 URL 参数或者是 POST 提交了一个 Form 表单。
+
 ## (问题) 有关于 Mybatis Mapper 无法自动装配的问题
 
 当前的解决方案:
