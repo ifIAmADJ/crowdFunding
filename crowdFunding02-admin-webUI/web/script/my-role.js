@@ -1,3 +1,24 @@
+function showConfirmModal(roleArray){
+
+    $("#confirmModal").modal("show");
+    $("#roleNameDiv").empty();
+
+    // 在全局变量范围创建数组存放角色 id
+    window.roleIdArray = [];
+
+
+    // 遍历 roleArray 数组
+    for(var i = 0 ; i< roleArray.length; i++){
+        var role = roleArray[i];
+        var roleName = role.roleName;
+        $("#roleNameDiv").append(roleName + "<br/>");
+
+        var roleId = role.roleId;
+        window.roleIdArray.push(roleId)
+    }
+
+}
+
 // 生成分页效果的函数，生成页面效果，是脚本的函数入口
 function generatePage() {
 
@@ -25,7 +46,6 @@ function getPageInfoRemote() {
         // 接受 json 格式的信息
         "dataType": "json"
     });
-
     console.log(ajaxResult);
 
     var statusCode = ajaxResult.status;
@@ -84,13 +104,13 @@ function fillTBody(pageInfo) {
 
         var numberId = "<td>" + (i + 1) + "</td>";
 
-        var checkboxTd = " <td><input type='checkbox'></td>";
+        var checkboxTd = " <td><input class='itemBox' id='" + roleId + "' type='checkbox'></td>";
 
         var roleNameTd = "<td>" + roleName + "</td>";
 
         var checkBtn = "<button type='button' class='btn btn-success btn-xs'><i class=  ' glyphicon glyphicon-check'></i></button>";
-        var pencilBtn = "<button type='button' class='btn btn-primary btn-xs'><i class=  ' glyphicon glyphicon-pencil'></i></button>";
-        var removeBtn = "<button type='button' class='btn btn-danger btn-xs'><i class=  ' glyphicon glyphicon-remove'></i></button>";
+        var pencilBtn = "<button type='button' id='" + roleId +"' class='btn btn-primary btn-xs pencilBtn'><i class=  ' glyphicon glyphicon-pencil'></i></button>";
+        var removeBtn = "<button type='button' id='" + roleId +"' class='btn btn-danger btn-xs removeBtn'><i class=  ' glyphicon glyphicon-remove'></i></button>";
 
         var buttonTd = "<td>" + checkBtn + " " + pencilBtn + " " + removeBtn + " " + "</td>"
 

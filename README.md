@@ -845,3 +845,24 @@ RBAC2，是在 RBAC1 的基础上增加了责任分离机制，和 RBAC1 是平�
 
 RBAC3，是 RBAC1 和 RBAC2 的组合。
 
+## (后端) 实现批量删除
+
+这里使用了 MGB 提供的接口。主要思路是通过 `RoleExample` 定义批量删除的所有 id ( 相当于在 SQL 语句中定义了 `delete from where ... in (...))  ，然后通过执行 `deleteByExample(..)` 方法来实现。
+
+```java
+@Override
+public void removeRole(List<Integer> roleIdList) {
+
+    // 新将一个 RoleExample
+    RoleExample roleExample = new RoleExample();
+
+    // 定义 Criteria
+    RoleExample.Criteria criteria = roleExample.createCriteria();
+    
+    // 意为 "满足在该列表的所有 id " 都是被执行对象
+    criteria.andIdIn(roleIdList);
+    
+    roleMapper.deleteByExample(roleExample);
+}
+```
+
